@@ -4,11 +4,13 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
-} from "@nestjs/common";
-import { JsonWebTokenError, TokenExpiredError } from "@nestjs/jwt";
+  Logger,
+} from '@nestjs/common';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
 
@@ -16,32 +18,28 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest();
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = "Internal server error";
+    let message = 'Internal server error';
 
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
 
       const errorResponse = exception.getResponse();
 
-      if (typeof errorResponse === "string") {
+      if (typeof errorResponse === 'string') {
         message = errorResponse;
       } else if (
-        typeof errorResponse === "object" &&
+        typeof errorResponse === 'object' &&
         errorResponse !== null &&
-        "message" in errorResponse
+        'message' in errorResponse
       ) {
         const errorMessage = errorResponse.message;
 
         message = Array.isArray(errorMessage)
-          ? errorMessage.join(", ")
+          ? errorMessage.join(', ')
           : String(errorMessage);
       }
-    } else if (exception instanceof TokenExpiredError) {
-      statusCode = HttpStatus.UNAUTHORIZED;
-      message = "Token expired";
-    } else if (exception instanceof JsonWebTokenError) {
-      statusCode = HttpStatus.UNAUTHORIZED;
-      message = "Invalid token";
+    } else if (exception instanceof Error) {
+      this.logger.error(`${request.method} ${request.url}`, exception.stack);
     }
 
     response.status(statusCode).json({
@@ -50,6 +48,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message,
       path: request.url,
       timestamp: new Date().toISOString(),
+
+      ...(process.env.NODE_ENV !== 'production' && exception instanceof Error
+        ? {
+            debug: {
+              name: exception.name,
+              message: exception.message,
+            },
+          }
+        : {}),
     });
   }
 }

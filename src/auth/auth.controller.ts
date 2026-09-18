@@ -50,12 +50,8 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(
-    @Body() refreshToken: string,
-    @Req() request: Request & { user: JwtPayload },
-  ): Promise<boolean> {
-    const userEmail = request.user.email;
-    const result = await this.authService.logout(userEmail, refreshToken);
+  async logout(@Body() dto: RefreshTokenDto): Promise<boolean> {
+    const result = await this.authService.logout(dto.refreshToken);
 
     return result;
   }

@@ -79,6 +79,17 @@ export class AuthService {
     return this.authRepository.toModel(userData);
   }
 
+  async logout(userEmail: string, refreshToken: string): Promise<boolean> {
+    if (!(await this.authRepository.isUserExist(userEmail))) {
+      throw new UserNotFoundException();
+    }
+    const tokenHash = this.tokenService.hashToken(refreshToken);
+
+    await this.authRepository.revokeRefreshToken(tokenHash);
+
+    return true;
+  }
+
   private async issueTokenPair(userData: User): Promise<TokenModel> {
     const payload = {
       sub: userData.id,

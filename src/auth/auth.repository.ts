@@ -125,6 +125,17 @@ export class AuthRepository {
       },
     });
   }
+  async revokeRefreshToken(tokenHash: string): Promise<void> {
+    await this.prisma.refreshToken.updateMany({
+      where: {
+        tokenHash,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+  }
 
   async removeExpiredRefreshTokens(userId: number): Promise<void> {
     await this.prisma.refreshToken.deleteMany({

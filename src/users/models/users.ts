@@ -13,6 +13,6 @@ export interface UserProfile {
   address: string | null;
   firstName: string | null;
   lastName: string | null;
-  // profileImage: ProfileMedia | null;
+  profileImage: ProfileMedia | null;
   role: string | null;
 }

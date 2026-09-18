@@ -24,19 +24,21 @@ model Role {
 }
 
 model User {
-  id           Int        @id @default(autoincrement())
-  userName     String     @unique
-  email        String     @unique
+  id           Int    @id @default(autoincrement())
+  userName     String @unique
+  email        String @unique
   passwordHash String
 
   status AuthStatus @default(ENABLED)
 
   roleId Int
-  role   Role @relation(fields: [roleId],references: [id]  )
+  role   Role @relation(fields: [roleId], references: [id])
 
   detail UserDetail?
 
   refreshTokens RefreshToken[]
+
+  uploadedMedia Media[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -46,8 +48,7 @@ model User {
 }
 
 model UserDetail {
-  id Int @id @default(autoincrement())
-
+  id          Int     @id @default(autoincrement())
   name        String?
   firstName   String?
   lastName    String?
@@ -55,7 +56,10 @@ model UserDetail {
   address     String?
 
   userId Int  @unique
-  user   User @relation(fields: [userId],references: [id],onDelete: NoAction  )
+  user   User @relation(fields: [userId], references: [id], onDelete: NoAction)
+
+  profileImageId Int?   @unique
+  profileImage   Media? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -70,7 +74,7 @@ model RefreshToken {
   tokenHash String @unique
 
   userId Int
-  user   User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   expiresAt DateTime
   revokedAt DateTime?
@@ -80,4 +84,25 @@ model RefreshToken {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model Media {
+  id Int @id @default(autoincrement())
+
+  name       String
+  url        String
+  storageKey String?
+  mimeType   String?
+  size       Int?
+
+  uploadedById Int?
+  uploadedBy   User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  profileFor UserDetail?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([uploadedById])
 }

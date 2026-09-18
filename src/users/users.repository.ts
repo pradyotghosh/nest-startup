@@ -1,13 +1,22 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client';
 import { UserProfile } from './models/users';
 import { UpdateUsersDto } from './dto/update-users.dto';
 import { PrismaService } from '../prisma/prisma.service';
 const userProfileInclude = {
   role: true,
-  detail: true,
-} satisfies Prisma.UserInclude;
 
+  detail: {
+    include: {
+      profileImage: true,
+    },
+  },
+} satisfies Prisma.UserInclude;
 type PrismaUserProfile = Prisma.UserGetPayload<{
   include: typeof userProfileInclude;
 }>;
@@ -23,11 +32,7 @@ export class UsersRepository {
         deletedAt: null,
       },
 
-      include: {
-        role: true,
-        detail: true,
-        userProfileInclude,
-      },
+      include: userProfileInclude,
     });
 
     if (!user) {
@@ -38,6 +43,19 @@ export class UsersRepository {
   }
 
   async update(userId: number, changes: UpdateUsersDto): Promise<UserProfile> {
+    if (changes.profileImageId !== undefined) {
+      const media = await this.prisma.media.findFirst({
+        where: {
+          id: changes.profileImageId,
+          uploadedById: userId,
+          deletedAt: null,
+        },
+      });
+
+      if (!media) {
+        throw new BadRequestException('Invalid profile image');
+      }
+    }
     const result = await this.prisma.userDetail.updateMany({
       where: {
         userId,
@@ -50,6 +68,7 @@ export class UsersRepository {
         lastName: changes.lastName,
         phoneNumber: changes.phoneNumber,
         address: changes.address,
+        profileImageId: changes.profileImageId,
       },
     });
 
@@ -78,25 +97,24 @@ export class UsersRepository {
   }
 
   private toModel(userData: PrismaUserProfile): UserProfile {
-    // const { mediaLinks, ...propertyWithoutMediaLink } = userData;
     return {
       id: userData.id,
       name: userData.detail?.name ?? null,
       firstName: userData.detail?.firstName ?? null,
-      address: userData.detail?.address ?? null,
-      createdAt: userData.createdAt.toISOString(),
-      updatedAt: userData.updatedAt.toISOString(),
       lastName: userData.detail?.lastName ?? null,
       phoneNumber: userData.detail?.phoneNumber ?? null,
-      role: userData.role.name ?? null,
+      address: userData.detail?.address ?? null,
+      profileImage: userData.detail?.profileImage
+        ? {
+            id: userData.detail.profileImage.id,
+            name: userData.detail.profileImage.name,
+            url: userData.detail.profileImage.url,
+          }
+        : null,
+      role: userData.role.name,
+      createdAt: userData.createdAt.toISOString(),
+      updatedAt: userData.updatedAt.toISOString(),
       deletedAt: userData.deletedAt?.toISOString() ?? null,
-      // profileImage: userData.detail?.profileImage
-      //   ? {
-      //       id: userData.detail.profileImage.id,
-      //       url: userData.detail.profileImage.url,
-      //       name: userData.detail.profileImage.name,
-      //     }
-      //   : null,
     };
   }
 }

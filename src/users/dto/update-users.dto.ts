@@ -20,8 +20,8 @@ export class UpdateUsersDto {
   @IsOptional()
   @IsPhoneNumber()
   phoneNumber?: string;
-  // @IsOptional()
-  // @Type(() => Number)
-  // @IsInt()
-  // profileImageId?: number;
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  profileImageId?: number;
 }

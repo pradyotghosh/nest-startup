@@ -354,7 +354,7 @@ Do not commit your `.env` file.
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/YOUR_USERNAME/nest-startup.git
 cd nest-startup
 ```
 

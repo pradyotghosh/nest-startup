@@ -1,0 +1,83 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AuthStatus {
+  ENABLED
+  DISABLED
+}
+
+model Role {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  users User[]
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  userName     String     @unique
+  email        String     @unique
+  passwordHash String
+
+  status AuthStatus @default(ENABLED)
+
+  roleId Int
+  role   Role @relation(fields: [roleId],references: [id]  )
+
+  detail UserDetail?
+
+  refreshTokens RefreshToken[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([roleId])
+}
+
+model UserDetail {
+  id Int @id @default(autoincrement())
+
+  name        String?
+  firstName   String?
+  lastName    String?
+  phoneNumber String?
+  address     String?
+
+  userId Int  @unique
+  user   User @relation(fields: [userId],references: [id],onDelete: NoAction  )
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([userId])
+}
+
+model RefreshToken {
+  id Int @id @default(autoincrement())
+
+  tokenHash String @unique
+
+  userId Int
+  user   User @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+}

@@ -14,6 +14,7 @@ The goal of this project is to provide a clean foundation for starting new backe
 
 - User registration
 - Email/password login
+- Logout / revoke session
 - Argon2 password hashing
 - JWT access tokens
 - JWT refresh tokens
@@ -32,6 +33,14 @@ The goal of this project is to provide a clean foundation for starting new backe
 - Account status
 - Soft deletion
 - Current-user profile endpoints
+
+### Media Upload
+
+- Generic Media module
+- Storage provider abstraction
+- Local file storage
+- Cloud storage adapters
+- Profile images
 
 ### API Infrastructure
 
@@ -97,6 +106,15 @@ src/
 |   ├── guards/
 |   ├── interceptors/
 |   └── models/
+|
+├── media/
+|   ├── dto/
+|   ├── models/
+|   ├── storage/
+|   ├── media.controller.ts
+|   ├── media.module.ts
+|   ├── media.repository.ts
+|   └── media.service.ts
 |
 ├── prisma/
 |   ├── prisma.module.ts
@@ -198,6 +216,30 @@ Example response:
       "email": "user@example.com"
     }
   },
+  "status": 200
+}
+```
+
+### Logout Flow
+
+```text
+Refresh token
+      |
+      V
+Verify validity and Hash Refresh Token
+      |
+      V
+Set validity to null
+      |
+      V
+return true
+```
+
+Example response:
+
+```json
+{
+  "data": true,
   "status": 200
 }
 ```
@@ -326,6 +368,13 @@ Represents authenticated user sessions.
 
 Only a SHA-256 hash of the refresh token is stored in the database.
 
+### Media Upload
+
+Response only the url of image uploaded.
+
+Set UPLOAD_DIR as bucket or folder name
+Set BASE_URL as endpoint of s3 or local server
+
 ---
 
 ## Environment Variables
@@ -343,6 +392,9 @@ JWT_REFRESH_SECRET=replace-with-a-different-secure-secret
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=30d
 JWT_REFRESH_EXPIRES_DAYS=30
+
+UPLOAD_DIR="./uploads"
+BASE_URL="http://localhost:3000"
 ```
 
 Do not commit your `.env` file.
@@ -434,6 +486,7 @@ The starter currently includes functionality around:
 /auth
 ├── register
 ├── login
+├── logout
 └── refresh
 
 /users
@@ -441,6 +494,9 @@ The starter currently includes functionality around:
     ├── get profile
     ├── update profile
     └── delete account
+
+/media
+└── upload
 ```
 
 Exact routes may evolve as the starter develops.
@@ -473,15 +529,9 @@ The starter is being developed incrementally.
 
 Planned additions include:
 
-- Generic Media module
-- Storage provider abstraction
-- Local file storage
-- Cloud storage adapters
-- Profile images
 - Role authorization guard
 - Policy-based authorization
 - Improved session management
-- Logout / revoke session
 - Logout from all devices
 - Database seeding
 - Unit tests
@@ -519,7 +569,6 @@ Examples
 ├── Products
 ├── Orders
 ├── Bookings
-├── POS
 └── Payments
 ```
 

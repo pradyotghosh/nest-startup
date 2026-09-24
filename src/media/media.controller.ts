@@ -15,13 +15,17 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { MediaService } from './media.service';
 import { Media } from './model/media';
+import { AuthRole } from '../auth/models/auth';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
 @Controller('media')
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
   @Post('upload')
+  @Roles(AuthRole.USER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data') //dev
   @ApiBody({
@@ -53,8 +57,6 @@ export class MediaController {
     file: Express.Multer.File,
     @CurrentUser('sub') userId: number,
   ): Promise<Media> {
-    const media = await this.mediaService.uploadMedia(file, userId);
-
-    return media;
+    return await this.mediaService.uploadMedia(file, userId);
   }
 }

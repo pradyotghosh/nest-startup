@@ -47,6 +47,21 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ApiResponseInterceptor());
   console.log('App listing to ==> ', process.env.PORT);
 
+  const httpAdapter = app.getHttpAdapter();
+
+  httpAdapter.get('/', (req, res) => {
+    res.status(200).send({
+      message:
+        'Hello!! Please visit https://github.com/pradyotghosh for documentation',
+    });
+  });
+  httpAdapter.get('/swagger', (req, res) => {
+    res.status(200).send({
+      message:
+        'Hello!! Please visit https://github.com/pradyotghosh for documentation',
+    });
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 

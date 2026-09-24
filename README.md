@@ -518,6 +518,7 @@ Current security-related features include:
 - DTO validation
 - Soft-deleted user filtering
 - Centralized exception handling
+- Role authorization guard
 
 Secrets and credentials should always be provided through environment variables.
 
@@ -529,7 +530,6 @@ The starter is being developed incrementally.
 
 Planned additions include:
 
-- Role authorization guard
 - Policy-based authorization
 - Improved session management
 - Logout from all devices

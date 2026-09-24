@@ -1,24 +1,24 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { JwtService } from "@nestjs/jwt";
-import { UnauthorizedException } from "@nestjs/common";
-import * as argon2 from "argon2";
+import { Test, TestingModule } from '@nestjs/testing';
+import { JwtService } from '@nestjs/jwt';
+import { UnauthorizedException } from '@nestjs/common';
+import * as argon2 from 'argon2';
 
-import { AuthService } from "./auth.service";
-import { AuthRepository } from "./auth.repository";
+import { AuthService } from './auth.service';
+import { AuthRepository } from './auth.repository';
 
-import { CreateUserDto } from "./dto/create-user.dto";
-import { LoginUserDto } from "./dto/login-user.dto";
+import { CreateUserDto } from './dto/create-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 
-import { AuthRole, AuthStatus, User } from "./models/auth";
+import { AuthRole, AuthStatus, User } from './models/auth';
 
-import { UserNotFoundException } from "../common/Exceptions/user-not-found.exception";
-import { DuplicateEmailException } from "../common/Exceptions/duplicate-email.exception";
+import { UserNotFoundException } from '../common/Exceptions/user-not-found.exception';
+import { DuplicateEmailException } from '../common/Exceptions/duplicate-email.exception';
 
-jest.mock("argon2", () => ({
+jest.mock('argon2', () => ({
   verify: jest.fn(),
 }));
 
-describe("AuthService", () => {
+describe('AuthService', () => {
   let service: AuthService;
 
   const mockAuthRepository = {
@@ -35,9 +35,9 @@ describe("AuthService", () => {
 
   const fakeUser: User = {
     id: 1,
-    userName: "test@test.com",
-    email: "test@test.com",
-    passwordHash: "hashed-password",
+    userName: 'test@test.com',
+    email: 'test@test.com',
+    passwordHash: 'hashed-password',
     roleId: AuthRole.USER,
     status: AuthStatus.ENABLED,
     createdAt: new Date(),
@@ -67,15 +67,15 @@ describe("AuthService", () => {
     service = module.get<AuthService>(AuthService);
   });
 
-  it("should be defined", () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe("registerUser", () => {
-    it("should register a user", async () => {
+  describe('registerUser', () => {
+    it('should register a user', async () => {
       const dto: CreateUserDto = {
-        email: "test@test.com",
-        password: "abcd",
+        email: 'test@test.com',
+        password: 'abcd',
       };
 
       mockAuthRepository.create.mockResolvedValue(fakeUser);
@@ -89,10 +89,10 @@ describe("AuthService", () => {
       expect(result).toEqual(fakeUser);
     });
 
-    it("should throw when repository rejects duplicate email", async () => {
+    it('should throw when repository rejects duplicate email', async () => {
       const dto: CreateUserDto = {
-        email: "test@test.com",
-        password: "abcd",
+        email: 'test@test.com',
+        password: 'abcd',
       };
 
       mockAuthRepository.create.mockRejectedValue(
@@ -105,13 +105,13 @@ describe("AuthService", () => {
     });
   });
 
-  describe("loginUser", () => {
+  describe('loginUser', () => {
     const dto: LoginUserDto = {
-      email: "test@test.com",
-      password: "abcd",
+      email: 'test@test.com',
+      password: 'abcd',
     };
 
-    it("should throw UserNotFoundException when user does not exist", async () => {
+    it('should throw UserNotFoundException when user does not exist', async () => {
       mockAuthRepository.isUserExist.mockResolvedValue(false);
 
       await expect(service.loginUser(dto)).rejects.toBeInstanceOf(
@@ -125,7 +125,7 @@ describe("AuthService", () => {
       expect(mockJwtService.signAsync).not.toHaveBeenCalled();
     });
 
-    it("should throw UnauthorizedException when password is incorrect", async () => {
+    it('should throw UnauthorizedException when password is incorrect', async () => {
       mockAuthRepository.isUserExist.mockResolvedValue(true);
 
       mockAuthRepository.getUserDataByEmail.mockResolvedValue(fakeUser);
@@ -144,14 +144,14 @@ describe("AuthService", () => {
       expect(mockJwtService.signAsync).not.toHaveBeenCalled();
     });
 
-    it("should login user and return JWT token", async () => {
+    it('should login user and return JWT token', async () => {
       mockAuthRepository.isUserExist.mockResolvedValue(true);
 
       mockAuthRepository.getUserDataByEmail.mockResolvedValue(fakeUser);
 
       mockVerify.mockResolvedValue(true);
 
-      mockJwtService.signAsync.mockResolvedValue("fake-jwt-token");
+      mockJwtService.signAsync.mockResolvedValue('fake-jwt-token');
 
       const result = await service.loginUser(dto);
 
@@ -172,14 +172,14 @@ describe("AuthService", () => {
         role: fakeUser.roleId,
       });
 
-      expect(result.token).toBe("fake-jwt-token");
+      expect(result.token).toBe('fake-jwt-token');
 
-      expect(result.user).not.toHaveProperty("passwordHash");
+      expect(result.user).not.toHaveProperty('passwordHash');
 
-      const { passwordHash, ...userWithoutPassword } = fakeUser;
+      const { passwordHash: _, ...userWithoutPassword } = fakeUser;
 
       expect(result).toEqual({
-        token: "fake-jwt-token",
+        token: 'fake-jwt-token',
         user: userWithoutPassword,
       });
     });

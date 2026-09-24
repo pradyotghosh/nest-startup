@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AuthRepository } from './auth.repository';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -13,7 +8,6 @@ import { User } from './models/auth';
 import { TokenService } from './token.service';
 import { TokenModel } from './models/token';
 import { UserNotFoundException } from '../common/exceptions/user-not-found.exception';
-import { RefreshTokenDto } from './dto/refreshToken.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -43,7 +37,7 @@ export class AuthService {
 
     const { accessToken, refreshToken } = await this.issueTokenPair(userData);
 
-    const { passwordHash, ...user } = userData;
+    const { passwordHash: _, ...user } = userData;
 
     return {
       accessToken,

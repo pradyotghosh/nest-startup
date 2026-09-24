@@ -19,7 +19,7 @@ export class AuthController {
   async createUser(@Body() user: CreateUserDto): Promise<PublicUser> {
     const serviceResponse = await this.authService.registerUser(user);
 
-    const { passwordHash, ...publicUser } = serviceResponse;
+    const { passwordHash: _, ...publicUser } = serviceResponse;
 
     return publicUser;
   }
@@ -43,7 +43,7 @@ export class AuthController {
     @Req() request: Request & { user: JwtPayload },
   ): Promise<PublicUser> {
     const userEmail = request.user.email;
-    const { passwordHash, ...serviceResponse } =
+    const { passwordHash: _, ...serviceResponse } =
       await this.authService.getUserProfile(userEmail);
 
     return serviceResponse;

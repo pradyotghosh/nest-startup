@@ -1,8 +1,7 @@
-import { BadRequestException, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MediaService } from './media.service';
 import { MediaController } from './media.controller';
-import { STORAGE_PROVIDER, StorageProvider } from './storage/storage.interface';
-import { ConfigService } from '@nestjs/config';
+import { STORAGE_PROVIDER } from './storage/storage.interface';
 import { LocalStorage } from './storage/local.storage';
 import { MediaRepository } from './media.repository';
 

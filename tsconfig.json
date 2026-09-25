@@ -18,6 +18,6 @@
     "strictPropertyInitialization": false,
     "types": ["vitest/globals", "node"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "src/auth/auth.service.spec.ts.disabled"],
   "exclude": ["node_modules", "dist", "src/generated"]
 }

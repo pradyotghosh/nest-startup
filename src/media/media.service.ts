@@ -29,4 +29,23 @@ export class MediaService {
       uploadedById: userId,
     });
   }
+
+  async delete(resourceId: number): Promise<boolean> {
+    const media = await this.mediaRepository.findById(resourceId);
+
+    await this.mediaRepository.softDeleteMedia(resourceId);
+
+    try {
+      await this.storageProvider.delete(media.storageKey);
+    } catch (error) {
+      this.logger.error(
+        `Failed to delete media file: ${media.storageKey}`,
+        error,
+      );
+
+      throw error;
+    }
+
+    return true;
+  }
 }

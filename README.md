@@ -39,7 +39,7 @@ The goal of this project is to provide a clean foundation for starting new backe
 - Generic Media module
 - Storage provider abstraction
 - Local file storage
-- Cloud storage adapters
+- Extensible storage provider abstraction for optional cloud storage adapters
 - Profile images
 
 ### API Infrastructure
@@ -74,7 +74,6 @@ The goal of this project is to provide a clean foundation for starting new backe
 - JWT authentication
 - Swagger / OpenAPI
 - pnpm
-- swagger
 
 ---
 
@@ -100,21 +99,26 @@ src/
 |   └── users.service.ts
 |
 ├── common/
-|   ├── decorators/
-|   ├── exceptions/
-|   ├── filters/
-|   ├── guards/
-|   ├── interceptors/
-|   └── models/
-|
+│   ├── decorators/
+│   ├── exceptions/
+│   ├── filters/
+│   ├── guards/
+│   ├── interceptors/
+│   ├── models/
+│   └── policies/
+│       ├── action.ts
+│       └── policy.interface.ts
+│
 ├── media/
-|   ├── dto/
-|   ├── models/
-|   ├── storage/
-|   ├── media.controller.ts
-|   ├── media.module.ts
-|   ├── media.repository.ts
-|   └── media.service.ts
+│   ├── dto/
+│   ├── models/
+│   ├── policies/
+│   │   └── media.policy.ts
+│   ├── storage/
+│   ├── media.controller.ts
+│   ├── media.module.ts
+│   ├── media.repository.ts
+│   └── media.service.ts
 |
 ├── prisma/
 |   ├── prisma.module.ts
@@ -229,7 +233,7 @@ Refresh token
 Verify validity and Hash Refresh Token
       |
       V
-Set validity to null
+Set revokedAt to current Date
       |
       V
 return true
@@ -280,6 +284,62 @@ Store New Refresh Token Hash
 This prevents previously used refresh tokens from being reused.
 
 Multiple refresh-token records are supported, allowing users to remain authenticated on multiple devices.
+
+---
+
+## Authorization Flow
+
+Protected resource endpoints use policy-based authorization.
+
+```text
+HTTP Request
+     |
+     v
+JwtAuthGuard
+     |
+     | authenticate user
+     v
+PolicyGuard
+     |
+     | read @Policy() metadata
+     | check allowed roles
+     v
+Resource Policy
+(MediaPolicy, etc.)
+     |
+     | evaluate resource-specific rules
+     | ownership / resource state / action rules
+     v
+Controller
+```
+
+@Policy() declares:
+
+- the policy handler
+- the requested action
+- an optional route parameter used to identify the resource
+- the roles allowed to access the route
+
+Example:
+
+```ts
+@Policy(
+  MediaPolicy,
+  Action.DELETE,
+  'id',
+  [AuthRole.ADMIN, AuthRole.USER],
+)
+@UseGuards(JwtAuthGuard, PolicyGuard)
+```
+
+```text
+PolicyGuard
+→ metadata + roles
+
+MediaPolicy
+→ media-specific rules
+
+```
 
 ---
 
@@ -346,8 +406,8 @@ Role
  └──< User
        |
        ├── 0..1 UserDetail
-       |
-       └── * RefreshToken
+       ├── * RefreshToken
+       └── * Media
 ```
 
 ### User
@@ -370,16 +430,38 @@ Only a SHA-256 hash of the refresh token is stored in the database.
 
 ### Media Upload
 
-Response only the url of image uploaded.
+Response Media Model.
 
-Set UPLOAD_DIR as bucket or folder name
-Set BASE_URL as endpoint of s3 or local server
+Example:
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Test",
+    "url": "http://localhost:3000/{folder_name}/{fileName}.{extension}",
+    "storageKey": "{folderName}/{fileName}.{extension}",
+    "mimeType": "image/jpg",
+    "size": 3560,
+    "uploadedById": 5,
+    "createdAt": "2026-09-23 12:45:34.907",
+    "updatedAt": "2026-09-23 12:45:34.907",
+    "deletedAt": null
+  },
+  "error": null,
+  "status": 201
+}
+```
 
 ---
 
 ## Environment Variables
 
 Create a `.env` file in the project root.
+
+To use Media upload :
+Set UPLOAD_DIR as bucket or folder name
+Set BASE_URL as endpoint of s3 or local server
 
 Example:
 
@@ -406,7 +488,7 @@ Do not commit your `.env` file.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/nest-startup.git
+git clone https://github.com/pradyotghosh/nest-startup.git
 cd nest-startup
 ```
 
@@ -496,7 +578,8 @@ The starter currently includes functionality around:
     └── delete account
 
 /media
-└── upload
+├── upload
+└── delete
 ```
 
 Exact routes may evolve as the starter develops.
@@ -518,7 +601,9 @@ Current security-related features include:
 - DTO validation
 - Soft-deleted user filtering
 - Centralized exception handling
-- Role authorization guard
+- Policy-based authorization
+- Route-level role restrictions through `@Policy()`
+- Resource-level authorization through domain policies
 
 Secrets and credentials should always be provided through environment variables.
 
@@ -530,7 +615,6 @@ The starter is being developed incrementally.
 
 Planned additions include:
 
-- Policy-based authorization
 - Improved session management
 - Logout from all devices
 - Database seeding

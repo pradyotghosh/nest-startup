@@ -2,7 +2,7 @@ export interface Media {
   id: number;
   name: string;
   url: string;
-  storageKey: string | null;
+  storageKey: string;
   mimeType: string | null;
   size: number | null;
   uploadedById: number | null;

@@ -4,6 +4,7 @@ import { MediaController } from './media.controller';
 import { STORAGE_PROVIDER } from './storage/storage.interface';
 import { LocalStorage } from './storage/local.storage';
 import { MediaRepository } from './media.repository';
+import { MediaPolicy } from './policies/media.policy';
 
 @Module({
   imports: [],
@@ -12,6 +13,8 @@ import { MediaRepository } from './media.repository';
   providers: [
     MediaService,
     MediaRepository,
+    MediaPolicy,
+
     {
       provide: STORAGE_PROVIDER,
       useClass: LocalStorage,

@@ -532,10 +532,22 @@ pnpm prisma generate
 pnpm prisma migrate dev
 ```
 
-### 6. Start the development server
+### 6. Seed the database
+
+Create the default application roles:
 
 ```bash
-pnpm start:dev
+pnpm prisma db seed
+```
+
+### 7. Start the development server
+
+Test once:
+
+```powershell
+pnpm prisma db seed
+pnpm lint
+pnpm build
 ```
 
 ---
